@@ -5,6 +5,7 @@ import com.example.RuleEngineBackend.model.Rule;
 import com.example.RuleEngineBackend.model.User;
 import com.example.RuleEngineBackend.repository.RuleRepository;
 import com.example.RuleEngineBackend.service.SessionService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -21,18 +22,35 @@ public class RuleController {
     private RuleRepository userRepository;
 
     // Node class definition (from ASTBuilder)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     static class Node {
-        String type;    // 'operator' or 'operand'
+        String type;
+        String value;// 'operator' or 'operand'
         Node left;      // Left child (another Node)
         Node right;     // Right child (another Node)
-        String value;   // Value for operand nodes (e.g., condition)
+           // Value for operand nodes (e.g., condition)
 
         public Node(String type, Node left, Node right, String value) {
             this.type = type;
+            this.value = value;
             this.left = left;
             this.right = right;
-            this.value = value;
         }
+        public String getType() {
+            return type;
+        }
+        public String getValue() {
+            return value;
+        }
+        public Node getLeft() {
+            return left;
+        }
+
+        public Node getRight() {
+            return right;
+        }
+
+
 
         @Override
         public String toString() {
@@ -54,7 +72,7 @@ public class RuleController {
         sessionService.signIn(email);
         if (!userRepository.findByEmail(email).isPresent()) {
             // Create a new user if not already exists
-            userRepository.save(new User(email, List.of()));
+            userRepository.save(new User(email, new ArrayList<>()));
         }
         return "Signed in as " + email;
     }
@@ -78,7 +96,7 @@ public class RuleController {
     }
     // Unified endpoint for both rule submission and evaluation
     @PostMapping
-    public Map<String, Object> processRuleOrEvaluate(@RequestParam String email,@RequestBody Map<String, Object> payload) {
+    public Map<String, Object> processRule(@RequestParam String email,@RequestBody Map<String, Object> payload) {
         Map<String, Object> response = new HashMap<>();
 
         if (!sessionService.isSignedIn(email)) {
@@ -89,7 +107,7 @@ public class RuleController {
             // Rule is submitted
             String rule = (String) payload.get("rule");
             currentRule = rule;
-            currentAST = generateAST(rule);
+            Node node = generateAST(rule);
 
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found."));
 
@@ -100,25 +118,47 @@ public class RuleController {
             // Save the updated user
             userRepository.save(user);
 
+            response.put("ASt",node);
             response.put("message", "Rule stored successfully.");
             response.put("rule", rule);
-        } else if (payload.containsKey("userData")) {
-            // Evaluate user data against the stored rule
-            if (currentAST == null) {
-                response.put("error", "No rule has been submitted yet.");
-                return response;
-            }
-
-            Map<String, Object> userData = (Map<String, Object>) payload.get("userData");
-            boolean result = evaluateRule(currentAST, userData);
-
-            response.put("rule", currentRule);
-            response.put("userData", userData);
-            response.put("result", result);
-        } else {
-            response.put("error", "Invalid request. Please provide either 'rule' or 'userData'.");
+        }
+//        else if (payload.containsKey("userData")) {
+//            // Evaluate user data against the stored rule
+//            if (currentAST == null) {
+//                response.put("error", "No rule has been submitted yet.");
+//                return response;
+//            }
+//
+//            Map<String, Object> userData = (Map<String, Object>) payload.get("userData");
+//            boolean result = evaluateRule(currentAST, userData);
+//
+//            response.put("rule", currentRule);
+//            response.put("userData", userData);
+//            response.put("result", result);
+//        }
+        else {
+            response.put("error", "Invalid request. Please provide  'rule'");
         }
 
+        return response;
+    }
+
+    @PostMapping("/evaluate")
+    public Map<String , Object> evaluateRule(@RequestBody Map<String, Object> payload){
+        Map<String, Object> response = new HashMap<>();
+        if(!payload.containsKey("rule") && !payload.containsKey("userData")){
+            response.put("error", "Invalid request. Please provide either 'rule' or 'userData'.");
+            return response;
+        }
+        String rule = (String) payload.get("rule");
+        Node node = generateAST(rule);
+        Map<String, Object> userData = (Map<String, Object>) payload.get("userData");
+        boolean result = evaluateRule(node, userData);
+
+        response.put("ast",node);
+        response.put("rule", rule);
+        response.put("userData", userData);
+        response.put("result", result);
         return response;
     }
 
@@ -229,7 +269,7 @@ public class RuleController {
                 return false;
             }
         } else if (attributeValue instanceof String) {
-            return attributeValue.toString().equals(value);
+            return attributeValue.toString().toLowerCase().equals(value.toLowerCase());
         }
 
         return false;

@@ -4,7 +4,7 @@
 }
 
 .sidebar {
-  width: 250px;
+  width: 750px;
   padding: 10px;
   border: 1px solid #ccc;
 }
@@ -51,4 +51,13 @@ input[type='text'], input[type='email'] {
 
 form button {
   padding: 8px 16px;
+}
+
+.btn{
+  padding: 0.4rem 0.7rem;
+  background-color: rgb(167, 166, 166);
+}
+
+.btn.delete img{
+  width: 20px;
 }
