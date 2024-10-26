@@ -18,10 +18,7 @@ This project consists of a backend developed using Spring Boot and a frontend bu
 2. **Build the Backend (optional): If you have Maven installed, you can build the project:**
    ```bash
    mvn clean install
-
-3. **Configure Database Connection: Make sure to configure the connection to the MongoDB cluster in the application.properties file located in src/main/resources. Use the following format:**
-spring.data.mongodb.uri=mongodb+srv://<username>:<password>@<cluster-url>/<database-name>?retryWrites=true&w=majority
-Replace <username>, <password>, <cluster-url>, and <database-name> with your actual MongoDB credentials and cluster information.
+3. **Database is already montitored in Mongodb atlas serveless cluster so you dont need to install it**
 
 4. **Run the Backend: Start the Spring Boot application using the following command:**
    ```bash
