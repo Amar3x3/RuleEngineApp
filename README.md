@@ -49,3 +49,10 @@ This project consists of a backend developed using Spring Boot and a frontend bu
    npm run dev
 
 ## The frontend should now be running on http://localhost:3001
+
+
+
+![1](./assets/1.png)
+![2](./assets/2.png)
+![3](./assets/3.png)
+![4](./assets/4.png)
