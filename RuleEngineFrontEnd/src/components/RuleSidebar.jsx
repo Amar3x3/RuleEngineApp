@@ -60,6 +60,7 @@ const RuleSidebar = ({ userEmail }) => {
       );
 
       setEvaluationResult(res.data.result);
+      setCombinedResult('');
       setAst(res.data.ast);
       alert("Rule Evaluated Succesfully");
       setTimeout(() => {
@@ -169,6 +170,7 @@ const RuleSidebar = ({ userEmail }) => {
       setAst(response.data.ast)
       alert("Rules Combined and Evaluated Succesfully")
       setError('');
+      setEvaluationResult('')
     } catch (err) {
       setError('Failed to combine or evaluate rules.');
       console.error(err);
